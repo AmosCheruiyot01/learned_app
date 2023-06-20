@@ -121,4 +121,3 @@ const facts = initialFacts;
 }
 
 export default App;
-b
