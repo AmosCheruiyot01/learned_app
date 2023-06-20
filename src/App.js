@@ -1,6 +1,6 @@
 import "./style.css"
 
-const CATEGORIES = [
+const CATEGORY = [
   { name: "technology", color: "#3b82f6" },
   { name: "science", color: "#16a34a" },
   { name: "finance", color: "#ef4444" },
@@ -45,10 +45,13 @@ const initialFacts = [
   },
 ];
 
-// LINK TO APP SAMPLE DATA: https://docs.google.com/spreadsheets/d/1eeldcA_OwP4DHYEvjG0kDe0cRys-cDPhc_E9P9G1e3I/edit#gid=0
 
-// 👍 🤯 ⛔️
-
+function Counter(){
+  return<div>
+    <span style={{fontSize: "40px"}}>8</span>
+    <button className="btn btn-large">+1</button>
+  </div>
+}
 
 function App() {
 
@@ -71,6 +74,8 @@ const appTitle = "today i learned ";
     <button className="btn btn-large btn-open">Share a fact</button>
   </header>
 
+
+<Counter/>
   <NewFactForm/>
   <main className="main">
   <CategoryFilter/>
@@ -87,8 +92,28 @@ function NewFactForm(){
   </form>
 }
 
+
+
+
 function CategoryFilter() {
-  return <aside>category categoryFilter</aside>
+  return <aside><ul>
+
+<li className="category">
+              <button class="btn btn-all-categories">All</button>
+            </li>
+
+    {CATEGORY.map((cat) => 
+    <li key={cat.name} className="category">
+              <button
+                class="btn btn-category"
+                style={{backgroundColor: cat.color}}
+              >
+               {cat.name}
+              </button>
+            </li>
+    )}
+    
+    </ul></aside>
 }
 
 function FactList(){
@@ -106,7 +131,7 @@ const facts = initialFacts;
        >(Source)</a
      >
    </p>
-   <span className="tag" style={{ backgroundColor: CATEGORIES.find((cat) => cat.name === fact.category).color }}
+   <span className="tag" style={{ backgroundColor: CATEGORY.find((cat) => cat.name === fact.category).color }}
      >{fact.category}</span
    >
    <div className="vote-buttons">
@@ -117,7 +142,9 @@ const facts = initialFacts;
  </li>
 )
     )}
-    </ul></section>
+    </ul>
+    <p>there  are {facts.length} fact in DataBase</p>
+    </section>
 }
 
 export default App;
