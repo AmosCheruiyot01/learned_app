@@ -1,5 +1,6 @@
+import { useState,useEffect } from "react";
 import "./style.css"
-
+import  supabase  from "./superbase";
 const CATEGORY = [
   { name: "technology", color: "#3b82f6" },
   { name: "science", color: "#16a34a" },
@@ -46,49 +47,141 @@ const initialFacts = [
 ];
 
 
-function Counter(){
-  return<div>
-    <span style={{fontSize: "40px"}}>8</span>
-    <button className="btn btn-large">+1</button>
-  </div>
-}
+// function Counter(){
+
+//   const [count, setCount] = useState(0);
+
+
+//   return<div>
+//     <span style={{fontSize: "40px"}}>{count}</span>
+//     <button className="btn btn-large" onClick={() => {
+//       setCount(count + 1)
+//     }}>+1</button>
+//   </div>
+// }
 
 function App() {
+  const [facts, setFacts] = useState([]);
+  const[showForm, setShowForm] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
 
-const appTitle = "today i learned ";
+  useEffect(() => {
+
+
+
+    async function getFacts(){
+      // setIsLoading(true);
+    const { data: facts, error } = await supabase
+    .from('facts')
+    .select('*');
+    if(!error){
+      setFacts(facts);
+    }else{
+      alert("error fetching the data from the server");
+    }
+    }
+    getFacts();
+  }, [facts]);
 
   return (
    <>
-   {/* HEADER */}
-    <header className="header">
-    <div className="logo">
-      <img
-        src="logo.png"
-        height="68"
-        width="68"
-        alt="Today I Learned Logo"
-      />
-      <h1>{appTitle}</h1>
-    </div>
+<Header showForm = {showForm} setShowForm= {setShowForm}/>    
+{showForm?<NewFactForm setFacts={setFacts} setShowForm={setShowForm}/>: null}
 
-    <button className="btn btn-large btn-open">Share a fact</button>
-  </header>
-
-
-<Counter/>
-  <NewFactForm/>
   <main className="main">
   <CategoryFilter/>
- <FactList/>
+  {/* {isLoading? <Loader/>: } */}
+  <FactList facts={facts}/>
+
+  
+ 
 </main>
 
    </>
   );
 }
 
-function NewFactForm(){
-  return <form className="fact-form">
-    fact form
+// function Loader(){
+//   return <p>loading....</p>
+// }
+
+function Header({ showForm, setShowForm}){
+
+  const appTitle = "today i learned ";
+
+  return <header className="header">
+  <div className="logo">
+    <img
+      src="logo.png"
+      height="68"
+      width="68"
+      alt="Today I Learned Logo"
+    />
+    <h1>{appTitle}</h1>
+  </div>
+
+  <button className="btn btn-large btn-open" onClick={() => setShowForm((show) => !show)}>{showForm?'close' : 'share a fact'}</button>
+</header>
+}
+
+function IsValidHttpUrl(string){
+  let url;
+  try{
+    url = new URL(string);
+  }catch(_){
+    return false;
+  }
+  return url.protocol === "http:" || url.protocol === "https:"
+}
+
+function NewFactForm({setFacts, setShowForm}){
+const [text, setText] = useState("");
+const[source, setSource] = useState("http://example.com");
+const[category, setCategory] = useState("");
+const txtLength = text.length;
+
+
+function handleSubmit(e){
+e.preventDefault();
+console.log(text, source, category);
+
+//check if the data is valid
+if(text && category && IsValidHttpUrl(source) && txtLength <= 200){
+  // console.log('valid data');
+// create a new fact object
+const newFact = {
+  id: Math.round(Math.random() * 1000000),
+    text,
+    source,
+    category,
+    votesInteresting: 0,
+    votesMindblowing: 0,
+    votesFalse: 0,
+    createdIn: new Date().getFullYear(),
+}
+
+// add the new fact to the list of facts
+setFacts([newFact, ...initialFacts]);
+// clear the form
+setText("");
+setSource("");
+setCategory("");
+
+// close the form
+setShowForm(false);
+}
+}
+
+  return <form className="fact-form " onSubmit={handleSubmit}>
+        <input type="text" placeholder="Share a fact with the world..." value={text} onChange={(e) => setText(e.target.value)}/>
+        <span>{200-txtLength}</span>
+        <input type="text" placeholder="Trustworthy source..." value={source} onChange={(e) => setSource(e.target.value)}/>
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="">Choose category:</option>
+          {CATEGORY.map((cat) => <option key={cat.name} value={cat.name}>{cat.name.toUpperCase()}</option>)}
+        </select>
+        <button className="btn btn-large">Post</button>
+     
   </form>
 }
 
@@ -99,13 +192,13 @@ function CategoryFilter() {
   return <aside><ul>
 
 <li className="category">
-              <button class="btn btn-all-categories">All</button>
+              <button className="btn btn-all-categories">All</button>
             </li>
 
     {CATEGORY.map((cat) => 
     <li key={cat.name} className="category">
               <button
-                class="btn btn-category"
+                className="btn btn-category"
                 style={{backgroundColor: cat.color}}
               >
                {cat.name}
@@ -116,8 +209,8 @@ function CategoryFilter() {
     </ul></aside>
 }
 
-function FactList(){
-const facts = initialFacts;
+function FactList({facts}){
+
 
   return <section><ul className="facts-list">
     {facts.map((fact) => 
